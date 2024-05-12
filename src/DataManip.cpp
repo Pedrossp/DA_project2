@@ -21,39 +21,45 @@ void DataManip::readEdges(string filename) {
     string line;
 
 
-    // Verifica se a primeira linha é "origem,destino,distancia"
+    if (!in.is_open()) {
+        cout << "Could not open the file\n";
+        return;
+    }
 
+    getline(in, line);
 
-    if (in.is_open()) {
+    bool hasLabels = (line.find("label") != string::npos);
 
-        while(getline(in, line)){
-            if (line == "origem,destino,distancia") {
-                std::getline(in, line);
-            }
+    // Reinicia a leitura do arquivo
+    in.clear();
+    in.seekg(0, ios::beg);
 
-            istringstream iss(line);
-            iss >> origem;
+    while (getline(in, line)) {
 
-            iss.ignore();
-            iss >> destino;
-
-            iss.ignore();
-            iss >> distancia;
-
-
-            if(graph_.findVertex(origem)== nullptr){
-                graph_.addVertex(origem,0,0);
-            }
-            if(graph_.findVertex(destino)== nullptr){
-                graph_.addVertex(destino,0,0);
-            }
-            graph_.addEdge(origem, destino, distancia);
-            graph_.addEdge(destino, origem, distancia);
-
+        if (line == "origem,destino,distancia" || line == "origem,destino,distancia,label origem,label destino") {
+            std::getline(in, line);
         }
 
-    } else
-        cout << "Could not open the file\n";
+        istringstream iss(line);
+        char comma;
+        if (hasLabels) {
+            string label_origem, label_destino;
+            iss >> origem >> comma >> destino >> comma >> distancia >> comma >> label_origem >> comma >> label_destino;
+        } else {
+            iss >> origem >> comma >> destino >> comma >> distancia;
+        }
+
+        if (graph_.findVertex(origem) == nullptr) {
+            graph_.addVertex(origem, 0, 0);
+        }
+        if (graph_.findVertex(destino) == nullptr) {
+            graph_.addVertex(destino, 0, 0);
+        }
+        graph_.addEdge(origem, destino, distancia);
+        graph_.addEdge(destino, origem, distancia);
+    }
+
+    in.close();
 }
 
 void DataManip::readNodes(string filename) {
